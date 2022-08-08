@@ -52,11 +52,11 @@ class piece:
 # $4 -> pixel
 class Road(piece):
     def __init__(self, v1):
-        super().__init__(100, 'sienna', 200, v1)
+        super().__init__(100, 'brown4', 200, v1)
 
 class Wood(piece):
     def __init__(self, v1):
-        super().__init__(100, 'yellow', 180, v1)
+        super().__init__(100, 'goldenrod2', 180, v1)
 
 class Steel(piece):
     def __init__(self, v1):
@@ -67,6 +67,7 @@ class Steel(piece):
 #################################################
 class Vertex:
     def __init__(self, cx, cy, radius = 10):
-        self.cx = cx
-        self.cy = cy
+        self.pos = (cx, cy)
+        self.oldpos = (cx, cy)
+        self.gravity = (0,1)
         self.radius = radius
