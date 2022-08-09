@@ -6,6 +6,7 @@
 #################################################
 from cmu_112_graphics import *
 from pieces import *
+from extra import *
 
 #################################################
 # Model
@@ -14,6 +15,9 @@ from pieces import *
 def appStarted(app):
     app.budget = 30000
     app.phase = 'build'
+    app.timerDelay = 10
+    app.staticJoints = {StaticJoint(115, app.height*2/3), 
+                        StaticJoint(app.width-115, app.height*2/3)}
     reset(app)
 
 def reset(app):
@@ -27,20 +31,10 @@ def reset(app):
 ##################################################
 # Controller
 #################################################
-def distance(x1, y1, x2, y2):
-    return ((x2-x1)**2+(y2-y1)**2)**0.5
-
-def circlesIntersect(x1, y1, x2, y2, r):
-    d = distance(x1, y1, x2, y2)
-    return d <= 2*r
-
-def checkVertexExists(app, v):
-    for vertex in app.vertices:
-        if (circlesIntersect(vertex.pos[0], vertex.pos[1],
-                            v.pos[0], v.pos[1], v.radius)):
-            print('hi')
-            return vertex
-    return v
+def timerFired(app):
+    if app.phase == 'run':
+        for vertex in app.vertices:
+            vertex.update()
 # Change Pieces
 def keyPressed(app, event):
     if app.phase == 'build':
@@ -60,6 +54,7 @@ def mousePressed(app, event):
             app.phase = 'run'
         else:
             app.phase = 'build'
+            resetVertices(app.vertices)
     
     if app.phase == 'build':
         if (event.x >= 30 and event.x<= 90 and
@@ -69,8 +64,10 @@ def mousePressed(app, event):
         if event.y > app.height/36 + 100:
             app.inPreview = not app.inPreview
             if app.inPreview:
-                app.currVertex = checkVertexExists(app,Vertex(event.x,event.y))
-                app.vertices.add(app.currVertex)
+                app.currVertex = checkVertexExists(app.vertices, app.staticJoints, 
+                                                    Vertex(event.x,event.y))
+                if not isinstance(app.currVertex, StaticJoint):
+                    app.vertices.add(app.currVertex)
                 if app.currPieceType == 'Road':
                     app.currPiece = Road(app.currVertex)
                 elif app.currPieceType == 'Wood':
@@ -78,8 +75,10 @@ def mousePressed(app, event):
                 elif app.currPieceType == 'Steel':
                     app.currPiece = Steel(app.currVertex)
             else:
-                app.currVertex = checkVertexExists(app,app.currPiece.placePiece())
-                app.vertices.add(app.currVertex)
+                app.currVertex = checkVertexExists(app.vertices, app.staticJoints, 
+                                                    app.currPiece.placePiece())
+                if not isinstance(app.currVertex, StaticJoint):
+                    app.vertices.add(app.currVertex)
                 app.price += app.currPiece.getCost()
                 app.pieces[app.currPieceType].add(app.currPiece)
                 app.currPiece = None
@@ -88,7 +87,7 @@ def mousePressed(app, event):
 def mouseMoved(app, event):
     if app.phase == 'build':
         if app.inPreview:
-            app.currPiece.setEndpoint2(event.x, event.y)
+            app.currPiece.setEndpoint2(event.x, event.y, app.vertices, app.staticJoints)
 
 #################################################
 # View
@@ -164,7 +163,11 @@ def drawVertices(app, canvas):
         canvas.create_oval(vertex.pos[0]-vertex.radius, vertex.pos[1]-vertex.radius,
                            vertex.pos[0]+vertex.radius, vertex.pos[1]+vertex.radius,
                            fill = 'yellow', outline = 'black')
-                
+def drawStaticJoints(app, canvas):
+    for joint in app.staticJoints:
+        canvas.create_oval(joint.pos[0]-joint.radius, joint.pos[1]-joint.radius,
+                           joint.pos[0]+joint.radius, joint.pos[1]+joint.radius,
+                           fill = 'red', outline = 'black')
 def redrawAll(app, canvas):
     drawBackgroud(app,canvas)
     drawBudget(app,canvas)
@@ -174,5 +177,6 @@ def redrawAll(app, canvas):
     drawPreview(app,canvas)
     drawPieces(app,canvas)
     drawVertices(app,canvas)
+    drawStaticJoints(app, canvas)
 
 runApp(width = 700, height = 700)

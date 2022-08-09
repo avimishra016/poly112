@@ -5,6 +5,7 @@
 # Your andrew id: avim
 #################################################
 from cmu_112_graphics import *
+from extra import *
 import math
 
 #################################################
@@ -20,19 +21,20 @@ class piece:
         self.endpoint2 = v1
         self.placed = False
 
-    def setEndpoint2(self, x, y):
+    def setEndpoint2(self, x, y, vertices, joints):
         if not self.placed:
             self.length = ((x-self.endpoint1.pos[0])**2 +
                         (y-self.endpoint1.pos[1])**2)**0.5
             if self.length < self.maxLen:
-                self.endpoint2 = Vertex(x,y)
+                self.endpoint2 = checkVertexExists(vertices,joints,Vertex(x,y))
             else:
                 yLen = self.endpoint1.pos[1]-y
                 xLen = self.endpoint1.pos[0]-x
                 theta = math.atan2(yLen, xLen)
                 xLen = math.cos(theta)*self.maxLen
                 yLen = math.sin(theta)*self.maxLen
-                self.endpoint2 = Vertex(self.endpoint1.pos[0]-xLen, self.endpoint1.pos[1]-yLen)
+                newVertex = Vertex(self.endpoint1.pos[0]-xLen, self.endpoint1.pos[1]-yLen)
+                self.endpoint2 = checkVertexExists(vertices, joints, newVertex)
 
     def getCost(self):
         return self.ppm/50 * self.length
@@ -45,7 +47,20 @@ class piece:
         return self.placed
 
     def update(self):
-        pass
+        '''
+        dx = self.endpoint2.pos[0]-self.endpoint1.pos[0]
+        dy = self.endpoint2.pos[1]-self.endpoint1.pos[1]
+        distance = (dx**2 + dy**2)**0.5
+        difference = (self.length - distance) / distance
+        offsetX = dx * difference/2
+        offsetY = dy * difference/2
+        if not isinstance(self.endpoint1, StaticJoint):
+            self.endpoint1.pos[0] += offsetX
+            self.endpoint1.pos[1] += offsetY
+        if not isinstance(self.endpoint2, StaticJoint):
+            self.endpoint2.pos[0] += offsetX
+            self.endpoint2.pos[1] += offsetY
+        '''
 #################################################
 # Subclasses - Types of pieces 
 # Road, Wood, Steel, etc
@@ -66,18 +81,30 @@ class Steel(piece):
         super().__init__(200, 'grey42', 450, v1)
 
 #################################################
-# Vertex Class (Will implement soon)
+# Vertex Class 
 #################################################
 class Vertex:
     def __init__(self, cx, cy, radius = 10):
-        self.pos = (cx, cy)
-        self.oldpos = (cx, cy)
-        self.gravity = (0,1)
+        self.originalPos = [cx,cy]
+        self.pos = [cx, cy]
+        self.oldpos = [cx, cy]
+        self.gravity = [0,4]
         self.radius = radius
-    
+
+    def resetPos(self):
+        self.pos[0] = self.originalPos[0]
+        self.pos[1] = self.originalPos[1]
+
     def update(self):
         vel = (self.oldpos[0]-self.pos[0], self.oldpos[1]-self.pos[1])
         self.oldpos = self.pos
         self.pos[0] += vel[0] + self.gravity[0]
         self.pos[1] += vel[1] + self.gravity[1]
+#################################################
+# Static Joint Class (Will implement soon)
+#################################################
 
+class StaticJoint:
+    def __init__(self, cx, cy, radius = 10):
+        self.pos = (cx, cy)
+        self.radius = radius
