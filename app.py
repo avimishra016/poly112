@@ -22,10 +22,25 @@ def reset(app):
     app.currPieceType = 'Road'
     app.currPiece = None
     app.inPreview = False
+    app.vertices = set()
+    app.currVertex = None
 ##################################################
 # Controller
 #################################################
+def distance(x1, y1, x2, y2):
+    return ((x2-x1)**2+(y2-y1)**2)**0.5
 
+def circlesIntersect(x1, y1, x2, y2, r):
+    d = distance(x1, y1, x2, y2)
+    return d <= 2*r
+
+def checkVertexExists(app, v):
+    for vertex in app.vertices:
+        if (circlesIntersect(vertex.pos[0], vertex.pos[1],
+                            v.pos[0], v.pos[1], v.radius)):
+            print('hi')
+            return vertex
+    return v
 # Change Pieces
 def keyPressed(app, event):
     if app.phase == 'build':
@@ -54,14 +69,17 @@ def mousePressed(app, event):
         if event.y > app.height/36 + 100:
             app.inPreview = not app.inPreview
             if app.inPreview:
+                app.currVertex = checkVertexExists(app,Vertex(event.x,event.y))
+                app.vertices.add(app.currVertex)
                 if app.currPieceType == 'Road':
-                    app.currPiece = Road((event.x,event.y))
+                    app.currPiece = Road(app.currVertex)
                 elif app.currPieceType == 'Wood':
-                    app.currPiece = Wood((event.x,event.y))
+                    app.currPiece = Wood(app.currVertex)
                 elif app.currPieceType == 'Steel':
-                    app.currPiece = Steel((event.x,event.y))
+                    app.currPiece = Steel(app.currVertex)
             else:
-                app.currPiece.placePiece()
+                app.currVertex = checkVertexExists(app,app.currPiece.placePiece())
+                app.vertices.add(app.currVertex)
                 app.price += app.currPiece.getCost()
                 app.pieces[app.currPieceType].add(app.currPiece)
                 app.currPiece = None
@@ -99,15 +117,19 @@ def drawBudget(app, canvas):
 def drawPieces(app, canvas):
     for type in app.pieces:
         for piece in app.pieces[type]:
-            x1, y1 = piece.endpoint1
-            x2, y2 = piece.endpoint2
+            x1 = piece.endpoint1.pos[0]
+            y1 = piece.endpoint1.pos[1]
+            x2 = piece.endpoint2.pos[0]
+            y2 = piece.endpoint2.pos[1]
             canvas.create_line(x1,y1,x2,y2, fill = piece.color, width = 5)
 
 # Draws the preview for the current piece
 def drawPreview(app, canvas):
     if app.inPreview and app.currPiece.endpoint2 != None:
-        x1, y1 = app.currPiece.endpoint1
-        x2, y2 = app.currPiece.endpoint2
+        x1 = app.currPiece.endpoint1.pos[0]
+        y1 = app.currPiece.endpoint1.pos[1]
+        x2 = app.currPiece.endpoint2.pos[0]
+        y2 = app.currPiece.endpoint2.pos[1]
         canvas.create_line(x1,y1,x2,y2,fill = 'navajowhite', width = 5)
 
 # draw button to delete all pieces
@@ -136,7 +158,13 @@ def drawLevel(app, canvas):
     canvas.create_rectangle(app.width, app.height, 
                             app.width-115, app.height*2/3, 
                             fill = 'lightsalmon4', outline = 'lightsalmon4')
-    
+
+def drawVertices(app, canvas):
+    for vertex in app.vertices:
+        canvas.create_oval(vertex.pos[0]-vertex.radius, vertex.pos[1]-vertex.radius,
+                           vertex.pos[0]+vertex.radius, vertex.pos[1]+vertex.radius,
+                           fill = 'yellow', outline = 'black')
+                
 def redrawAll(app, canvas):
     drawBackgroud(app,canvas)
     drawBudget(app,canvas)
@@ -145,5 +173,6 @@ def redrawAll(app, canvas):
     drawLevel(app, canvas)
     drawPreview(app,canvas)
     drawPieces(app,canvas)
+    drawVertices(app,canvas)
 
 runApp(width = 700, height = 700)

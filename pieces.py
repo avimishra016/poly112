@@ -22,27 +22,30 @@ class piece:
 
     def setEndpoint2(self, x, y):
         if not self.placed:
-            self.length = ((x-self.endpoint1[0])**2 +
-                        (y-self.endpoint1[1])**2)**0.5
+            self.length = ((x-self.endpoint1.pos[0])**2 +
+                        (y-self.endpoint1.pos[1])**2)**0.5
             if self.length < self.maxLen:
-                self.endpoint2 = (x,y)
+                self.endpoint2 = Vertex(x,y)
             else:
-                yLen = self.endpoint1[1]-y
-                xLen = self.endpoint1[0]-x
+                yLen = self.endpoint1.pos[1]-y
+                xLen = self.endpoint1.pos[0]-x
                 theta = math.atan2(yLen, xLen)
                 xLen = math.cos(theta)*self.maxLen
                 yLen = math.sin(theta)*self.maxLen
-                self.endpoint2 = self.endpoint1[0]-xLen, self.endpoint1[1]-yLen
+                self.endpoint2 = Vertex(self.endpoint1.pos[0]-xLen, self.endpoint1.pos[1]-yLen)
 
     def getCost(self):
         return self.ppm/50 * self.length
 
     def placePiece(self):
         self.placed = True
+        return self.endpoint2
     
     def isPlaced(self):
         return self.placed
 
+    def update(self):
+        pass
 #################################################
 # Subclasses - Types of pieces 
 # Road, Wood, Steel, etc
@@ -71,3 +74,10 @@ class Vertex:
         self.oldpos = (cx, cy)
         self.gravity = (0,1)
         self.radius = radius
+    
+    def update(self):
+        vel = (self.oldpos[0]-self.pos[0], self.oldpos[1]-self.pos[1])
+        self.oldpos = self.pos
+        self.pos[0] += vel[0] + self.gravity[0]
+        self.pos[1] += vel[1] + self.gravity[1]
+
