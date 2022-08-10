@@ -37,7 +37,7 @@ def timerFired(app):
             vertex.update()
         for value in app.pieces.values():
             for piece in value:
-                piece.update()
+                 piece.update()
 # Change Pieces
 def keyPressed(app, event):
     if app.phase == 'build':

@@ -12,7 +12,7 @@ import math
 # Piece SuperClass
 #################################################
 class piece:
-    def __init__(self, maxLen, color, ppm, v1):
+    def __init__(self, maxLen, color, ppm, stiffness, v1):
         self.length = 0
         self.maxLen = maxLen
         self.color = color
@@ -20,6 +20,7 @@ class piece:
         self.endpoint1 = v1
         self.endpoint2 = v1
         self.placed = False
+        self.stiffness = stiffness
 
     def setEndpoint2(self, x, y, vertices, joints):
         if not self.placed:
@@ -48,13 +49,12 @@ class piece:
         return self.placed
 
     def update(self):
-        stiffness = 1
         distX = self.endpoint1.pos[0] - self.endpoint2.pos[0]
         distY = self.endpoint1.pos[1] - self.endpoint2.pos[1]
         dist = math.sqrt(distX**2 + distY**2)
         diff = 0
-        p1 = 0.5 * stiffness
-        p2 = stiffness - p1
+        p1 = 0.5 * self.stiffness
+        p2 = self.stiffness - p1
         if dist != 0:
             diff = (self.length - dist) / dist
         if not isinstance(self.endpoint1, StaticJoint):
@@ -74,15 +74,15 @@ class piece:
 # $4 -> pixel
 class Road(piece):
     def __init__(self, v1):
-        super().__init__(100, 'brown4', 200, v1)
+        super().__init__(100, 'brown4', 200, 1, v1)
 
 class Wood(piece):
     def __init__(self, v1):
-        super().__init__(100, 'goldenrod2', 180, v1)
+        super().__init__(100, 'goldenrod2', 180, 1.5, v1)
 
 class Steel(piece):
     def __init__(self, v1):
-        super().__init__(200, 'grey42', 450, v1)
+        super().__init__(200, 'grey42', 450, 2, v1)
 
 #################################################
 # Vertex Class 
