@@ -1,5 +1,5 @@
 #################################################
-# pieces.py
+# piece.py
 #
 # Your name: Avi Mishra
 # Your andrew id: avim

@@ -10,42 +10,62 @@ from extra import *
 from joints import *
 from vehicle import *
 from terrain import *
+
 #################################################
 # Model
 #################################################
 
 def appStarted(app):
+    # How much you can spend on the bridge
     app.budget = 30000
+    #Manages which phase of the game you are in
     app.phase = 'build'
+    #How often timerFired runs
     app.timerDelay = 1
+    # Creates and stores the Static Joints for the Level
     app.staticJoints = { StaticJoint(115, 467), 
                          StaticJoint(app.width-115, 467)
                        }
+    # Creates and stores the Terrain for the Level
     app.terrain = { Terrain(0, 467, 115, app.height), 
                     Terrain(app.width-115, 467, app.width, app.height)
                   }
+    # Creates a vehicle for the game
     app.vehicle = Vehicle(50, 200)
     reset(app)
 
+# Model Veriables that Need to be reset whenever you clear the screen
 def reset(app):
+    #How much money you have used so far
     app.price = 0
+    #Stores the pieces
     app.pieces = {'Road': set(), 'Wood': set(), 'Steel': set()}
+    # Makes the current piece a road
     app.currPieceType = 'Road'
+    #No current piece has been created
     app.currPiece = None    
+    #Variable that tracks if you need to draw a preview or not
     app.inPreview = False
+    #Stores all the vertices
     app.vertices = set()
+    # Stores the current vertex to be drawn
     app.currVertex = None
+
 
 ##################################################
 # Controller
 #################################################
 def timerFired(app):
+    #onl execute when in run phase
     if app.phase == 'run':
+        #update the position of the vertices
         for vertex in app.vertices:
             vertex.update(None)
+        #update the pieces
         for value in app.pieces.values():
             for piece in value:
                  piece.update()
+        #update the vehicles position
         seg = app.vehicle.isTouching(app.terrain, app.pieces['Road'])
         app.vehicle.update(seg)
 
@@ -109,6 +129,8 @@ def mouseMoved(app, event):
     if app.phase == 'build':
         if app.inPreview:
             app.currPiece.setEndpoint2(event.x, event.y, app.vertices, app.staticJoints)
+
+
 
 #################################################
 # View
