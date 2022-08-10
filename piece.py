@@ -6,6 +6,7 @@
 #################################################
 from cmu_112_graphics import *
 from extra import *
+from joints import *
 import math
 
 #################################################
@@ -48,7 +49,12 @@ class piece:
     def isPlaced(self):
         return self.placed
 
+    def getXBounds(self):
+        return self.endpoint1.pos[0], self.endpoint2.pos[0]
+
     def update(self):
+        # Inspiration for how the physics work and how it is implemented: 
+        # https://gamedevelopment.tutsplus.com/tutorials/simulate-tearable-cloth-and-ragdolls-with-simple-verlet-integration--gamedev-519
         distX = self.endpoint1.pos[0] - self.endpoint2.pos[0]
         distY = self.endpoint1.pos[1] - self.endpoint2.pos[1]
         dist = math.sqrt(distX**2 + distY**2)
@@ -83,33 +89,3 @@ class Wood(piece):
 class Steel(piece):
     def __init__(self, v1):
         super().__init__(200, 'grey42', 450, 2, v1)
-
-#################################################
-# Vertex Class 
-#################################################
-class Vertex:
-    def __init__(self, cx, cy, radius = 10):
-        self.originalPos = [cx,cy]
-        self.pos = [cx, cy]
-        self.oldpos = [cx, cy]
-        self.gravity = [0,0.5]
-        self.radius = radius
-
-    def resetPos(self):
-        self.pos = self.originalPos.copy()
-        self.oldpos = self.originalPos.copy()
-
-    def update(self):
-        vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
-        self.oldpos = self.pos
-        self.pos[0] += vel[0] + self.gravity[0]
-        self.pos[1] += vel[1] + self.gravity[1]
-
-#################################################
-# Static Joint Class (Will implement soon)
-#################################################
-
-class StaticJoint:
-    def __init__(self, cx, cy, radius = 10):
-        self.pos = (cx, cy)
-        self.radius = radius

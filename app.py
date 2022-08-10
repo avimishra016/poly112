@@ -5,9 +5,11 @@
 # Your andrew id: avim
 #################################################
 from cmu_112_graphics import *
-from pieces import *
+from piece import *
 from extra import *
-
+from joints import *
+from vehicle import *
+from terrain import *
 #################################################
 # Model
 #################################################
@@ -16,8 +18,13 @@ def appStarted(app):
     app.budget = 30000
     app.phase = 'build'
     app.timerDelay = 1
-    app.staticJoints = {StaticJoint(115, app.height*2/3), 
-                        StaticJoint(app.width-115, app.height*2/3)}
+    app.staticJoints = { StaticJoint(115, 467), 
+                         StaticJoint(app.width-115, 467)
+                       }
+    app.terrain = { Terrain(0, 467, 115, app.height), 
+                    Terrain(app.width-115, 467, app.width, app.height)
+                  }
+    app.vehicle = Vehicle(50, 200)
     reset(app)
 
 def reset(app):
@@ -28,6 +35,7 @@ def reset(app):
     app.inPreview = False
     app.vertices = set()
     app.currVertex = None
+
 ##################################################
 # Controller
 #################################################
@@ -38,15 +46,23 @@ def timerFired(app):
         for value in app.pieces.values():
             for piece in value:
                  piece.update()
+        if app.vehicle.isTouching(app.terrain, app.pieces['Road']):
+            app.vehicle.moveRight()
+        else:
+            app.vehicle.update()
+
 # Change Pieces
 def keyPressed(app, event):
     if app.phase == 'build':
-        if event.key == '1':
-            app.currPieceType = 'Road'
-        if event.key == '2':
-            app.currPieceType = 'Wood'
-        if event.key == '3':
-            app.currPieceType = 'Steel'
+        if event.key in '123':
+            app.inPreview = False
+            app.currVertex = None
+            if event.key == '1':
+                app.currPieceType = 'Road'
+            if event.key == '2':
+                app.currPieceType = 'Wood'
+            if event.key == '3':
+                app.currPieceType = 'Steel'
 
 # Create a starting point for the piece
 # When clicked a second time place the piece on the screen
@@ -58,6 +74,7 @@ def mousePressed(app, event):
         else:
             app.phase = 'build'
             resetVertices(app.vertices)
+            app.vehicle.resetPos()
     
     if app.phase == 'build':
         if (event.x >= 30 and event.x<= 90 and
@@ -154,12 +171,15 @@ def drawPausePlay(app, canvas):
                            app.width-40, 90,
                            width = 10, fill = 'plum3')
 def drawLevel(app, canvas):
-    canvas.create_rectangle(0, app.height*2/3, 
-                            115, app.height, 
-                            fill = 'lightsalmon4', outline = 'lightsalmon4')
-    canvas.create_rectangle(app.width, app.height, 
-                            app.width-115, app.height*2/3, 
-                            fill = 'lightsalmon4', outline = 'lightsalmon4')
+    for terrain in app.terrain:
+        x1, y1 = terrain.topLeft 
+        x2, y2 = terrain.bottomRight
+        canvas.create_rectangle(x1, y1, x2, y2,
+                                fill = 'lightsalmon4', outline = 'lightsalmon4')
+def drawVehicle(app, canvas):
+    cx, cy = app.vehicle.pos
+    r = app.vehicle.radius
+    canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill = 'magenta')
 
 def drawVertices(app, canvas):
     for vertex in app.vertices:
@@ -172,14 +192,15 @@ def drawStaticJoints(app, canvas):
                            joint.pos[0]+joint.radius, joint.pos[1]+joint.radius,
                            fill = 'red', outline = 'black')
 def redrawAll(app, canvas):
-    drawBackgroud(app,canvas)
-    drawBudget(app,canvas)
-    drawDeleteAllPieces(app,canvas)
-    drawPausePlay(app,canvas)
+    drawBackgroud(app, canvas)
+    drawBudget(app, canvas)
+    drawDeleteAllPieces(app, canvas)
+    drawPausePlay(app, canvas)
     drawLevel(app, canvas)
-    drawPreview(app,canvas)
-    drawPieces(app,canvas)
-    drawVertices(app,canvas)
+    drawPreview(app, canvas)
+    drawPieces(app, canvas)
+    drawVertices(app, canvas)
     drawStaticJoints(app, canvas)
+    drawVehicle(app, canvas)
 
 runApp(width = 700, height = 700)

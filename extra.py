@@ -1,3 +1,4 @@
+import math
 def distance(x1, y1, x2, y2):
     return ((x2-x1)**2+(y2-y1)**2)**0.5
 
@@ -24,3 +25,8 @@ def checkVertexExists(vertices, joints, v):
 def resetVertices(vertices):
     for vertex in vertices:
         vertex.resetPos()
+# distance from point to line -> https://www.nagwa.com/en/explainers/349153496801/
+def isTangent(v1, v2, circle, radius):
+    dist = radius + 1
+    if dist <= radius:
+        return True
