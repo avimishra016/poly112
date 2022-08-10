@@ -180,7 +180,7 @@ def drawLevel(app, canvas):
 def drawVehicle(app, canvas):
     cx, cy = app.vehicle.pos
     r = app.vehicle.radius
-    canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill = 'magenta')
+    canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill = 'seagreen1')
 
 def drawVertices(app, canvas):
     for vertex in app.vertices:
