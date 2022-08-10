@@ -15,7 +15,7 @@ from extra import *
 def appStarted(app):
     app.budget = 30000
     app.phase = 'build'
-    app.timerDelay = 10
+    app.timerDelay = 1
     app.staticJoints = {StaticJoint(115, app.height*2/3), 
                         StaticJoint(app.width-115, app.height*2/3)}
     reset(app)

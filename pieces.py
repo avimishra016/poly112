@@ -48,18 +48,21 @@ class piece:
         return self.placed
 
     def update(self):
+        stiffness = 1
         distX = self.endpoint1.pos[0] - self.endpoint2.pos[0]
         distY = self.endpoint1.pos[1] - self.endpoint2.pos[1]
         dist = math.sqrt(distX**2 + distY**2)
         diff = 0
+        p1 = 0.5 * stiffness
+        p2 = stiffness - p1
         if dist != 0:
             diff = (self.length - dist) / dist
         if not isinstance(self.endpoint1, StaticJoint):
-            self.endpoint1.pos[0] += distX * 0.5 * diff
-            self.endpoint1.pos[1] += distY * 0.5 * diff
+            self.endpoint1.pos[0] += distX * p1 * diff
+            self.endpoint1.pos[1] += distY * p1 * diff
         if not isinstance(self.endpoint2, StaticJoint):
-            self.endpoint2.pos[0] -= distX * 0.5 * diff
-            self.endpoint2.pos[1] -= distY * 0.5 * diff
+            self.endpoint2.pos[0] -= distX * p2 * diff
+            self.endpoint2.pos[1] -= distY * p2 * diff
 
 
 #################################################
@@ -89,7 +92,7 @@ class Vertex:
         self.originalPos = [cx,cy]
         self.pos = [cx, cy]
         self.oldpos = [cx, cy]
-        self.gravity = [0,4]
+        self.gravity = [0,0.5]
         self.radius = radius
 
     def resetPos(self):
