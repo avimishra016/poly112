@@ -91,7 +91,7 @@ def mousePressed(app, event):
             app.phase = 'run'
             if app.inPreview:
                 app.inPreview = False
-                app.vertices.remove(app.currVertex)
+                #app.vertices.remove(app.currVertex)
         else:
             app.phase = 'build'
             resetVertices(app.vertices)

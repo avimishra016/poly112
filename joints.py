@@ -55,6 +55,7 @@ class Vertex:
             else:
                 v1 = collidingSegment.endpoint1.pos
                 v2 = collidingSegment.endpoint2.pos
+                slope = getSlope(v1,v2)
                 self.pos[1] += getSlope(v1, v2) / self.vel - 3
 
 #################################################
