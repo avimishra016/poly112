@@ -18,13 +18,13 @@ class Vehicle(Vertex):
         for dirt in terrain:
             top = dirt.getTop()
             if isTangent(top[0], top[1], self.pos, self.radius):
-                return True
+                return dirt
         #Touching Road
         for road in roads:
             if road.getXBounds()[0] < self.pos[0] < road.getXBounds()[1]:
                 if isTangent(road.endpoint1.pos, road.endpoint2.pos, self.pos, self.radius):
-                    return True
-        return False
+                    return road
+        return None
     
     def moveRight(self):
         self.oldpos = self.pos

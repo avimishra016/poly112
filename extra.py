@@ -25,8 +25,22 @@ def checkVertexExists(vertices, joints, v):
 def resetVertices(vertices):
     for vertex in vertices:
         vertex.resetPos()
-# distance from point to line -> https://www.nagwa.com/en/explainers/349153496801/
+
+def pointOnLine(v1, v2, point):
+    lengthLine = distance(v1[0], v1[1], v2[0], v2[1])
+    d1 = distance(point[0], point[1], v1[0], v1[1])
+    d2 = distance(point[0], point[1], v2[0], v2[1])
+    return abs(lengthLine-(d1+d2)) < 0.01
+
+#inspiration: http://www.jeffreythompson.org/collision-detection/line-circle.php
 def isTangent(v1, v2, circle, radius):
-    dist = radius + 1
-    if dist <= radius:
-        return True
+    lengthLine = distance(v1[0], v1[1], v2[0], v2[1])
+    dotProd = ( ( (circle[0]-v1[0]) * (v2[0]-v1[0]) ) + 
+                ( (circle[1]-v1[1]) * (v2[1]-v1[1]) ) ) / (lengthLine**2)
+    closestX = v1[0] + (dotProd * (v2[0]-v1[0]))
+    closestY = v1[1] + (dotProd * (v2[1]-v1[1]))
+    dist = distance(closestX, closestY, circle[0], circle[1])
+    return dist <= radius + 2 and pointOnLine(v1, v2, (closestX, closestY))
+
+def getSlope(v1, v2):
+    return (v2[1]-v1[1]) / (v2[0]-v1[0])

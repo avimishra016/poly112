@@ -44,7 +44,11 @@ class piece:
     def placePiece(self):
         self.placed = True
         self.length = distanceBetVertices(self.endpoint1, self.endpoint2)
-        return self.endpoint2
+        temp = self.endpoint2
+        if self.endpoint2.pos[0] < self.endpoint1.pos[0]:
+            self.endpoint2 = self.endpoint1
+            self.endpoint1 = temp
+        return temp
     
     def isPlaced(self):
         return self.placed

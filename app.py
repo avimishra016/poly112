@@ -42,14 +42,12 @@ def reset(app):
 def timerFired(app):
     if app.phase == 'run':
         for vertex in app.vertices:
-            vertex.update()
+            vertex.update(None)
         for value in app.pieces.values():
             for piece in value:
                  piece.update()
-        if app.vehicle.isTouching(app.terrain, app.pieces['Road']):
-            app.vehicle.moveRight()
-        else:
-            app.vehicle.update()
+        seg = app.vehicle.isTouching(app.terrain, app.pieces['Road'])
+        app.vehicle.update(seg)
 
 # Change Pieces
 def keyPressed(app, event):
@@ -71,6 +69,9 @@ def mousePressed(app, event):
         event.y <= 90 and event.y >= 30):
         if app.phase != 'run':
             app.phase = 'run'
+            if app.inPreview:
+                app.inPreview = False
+                app.vertices.remove(app.currVertex)
         else:
             app.phase = 'build'
             resetVertices(app.vertices)
@@ -198,9 +199,9 @@ def redrawAll(app, canvas):
     drawPausePlay(app, canvas)
     drawLevel(app, canvas)
     drawPreview(app, canvas)
+    drawVehicle(app, canvas)
     drawPieces(app, canvas)
     drawVertices(app, canvas)
     drawStaticJoints(app, canvas)
-    drawVehicle(app, canvas)
 
 runApp(width = 700, height = 700)

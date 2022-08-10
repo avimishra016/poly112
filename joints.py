@@ -1,11 +1,12 @@
+from turtle import pos
 from piece import *
 from extra import *
-
+from terrain import *
 #################################################
 # Vertex Class 
 #################################################
 class Vertex:
-    def __init__(self, cx, cy, mass = 1, radius = 10, gravity = 0.5):
+    def __init__(self, cx, cy, mass = 1, radius = 10, vel = 0, gravity = 0.5):
         # Store original position for later reset
         self.originalPos = [cx,cy]
 
@@ -13,6 +14,7 @@ class Vertex:
         self.pos = [cx, cy]
         self.oldpos = [cx, cy]
 
+        self.vel = vel
         #Store the velocity (how many pixels the object moves)
         self.velocity = [0, gravity]
 
@@ -25,12 +27,27 @@ class Vertex:
     def resetPos(self):
         self.pos = self.originalPos.copy()
         self.oldpos = self.originalPos.copy()
+        self.velocity[0] = 0
 
-    def update(self):
-        vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
+    def update(self, collidingSegment):
         self.oldpos = self.pos
-        self.pos[0] += vel[0] + self.velocity[0]
-        self.pos[1] += vel[1] + self.velocity[1]
+        if collidingSegment == None:
+            vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
+            self.oldpos = self.pos
+            self.pos[0] += vel[0] + self.velocity[0]
+            self.pos[1] += vel[1] + self.velocity[1]
+        else:
+            self.velocity[0] = self.vel
+            self.oldpos = self.pos
+            self.pos[0] += self.vel
+            v1, v2 = 0, 0
+            if isinstance(collidingSegment, Terrain):
+                v1, v2 = collidingSegment.getTop()
+                self.pos[1] += getSlope(v1, v2) / self.vel
+            else:
+                v1 = collidingSegment.endpoint1.pos
+                v2 = collidingSegment.endpoint2.pos
+                self.pos[1] += getSlope(v1, v2) / self.vel - 3
 
 #################################################
 # Static Joints
