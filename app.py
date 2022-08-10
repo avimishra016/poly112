@@ -24,7 +24,7 @@ def reset(app):
     app.price = 0
     app.pieces = {'Road': set(), 'Wood': set(), 'Steel': set()}
     app.currPieceType = 'Road'
-    app.currPiece = None
+    app.currPiece = None    
     app.inPreview = False
     app.vertices = set()
     app.currVertex = None
@@ -35,6 +35,9 @@ def timerFired(app):
     if app.phase == 'run':
         for vertex in app.vertices:
             vertex.update()
+        for value in app.pieces.values():
+            for piece in value:
+                piece.update()
 # Change Pieces
 def keyPressed(app, event):
     if app.phase == 'build':

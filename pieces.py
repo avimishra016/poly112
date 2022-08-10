@@ -41,26 +41,27 @@ class piece:
 
     def placePiece(self):
         self.placed = True
+        self.length = distanceBetVertices(self.endpoint1, self.endpoint2)
         return self.endpoint2
     
     def isPlaced(self):
         return self.placed
 
     def update(self):
-        '''
-        dx = self.endpoint2.pos[0]-self.endpoint1.pos[0]
-        dy = self.endpoint2.pos[1]-self.endpoint1.pos[1]
-        distance = (dx**2 + dy**2)**0.5
-        difference = (self.length - distance) / distance
-        offsetX = dx * difference/2
-        offsetY = dy * difference/2
+        distX = self.endpoint1.pos[0] - self.endpoint2.pos[0]
+        distY = self.endpoint1.pos[1] - self.endpoint2.pos[1]
+        dist = math.sqrt(distX**2 + distY**2)
+        diff = 0
+        if dist != 0:
+            diff = (self.length - dist) / dist
         if not isinstance(self.endpoint1, StaticJoint):
-            self.endpoint1.pos[0] += offsetX
-            self.endpoint1.pos[1] += offsetY
+            self.endpoint1.pos[0] += distX * 0.5 * diff
+            self.endpoint1.pos[1] += distY * 0.5 * diff
         if not isinstance(self.endpoint2, StaticJoint):
-            self.endpoint2.pos[0] += offsetX
-            self.endpoint2.pos[1] += offsetY
-        '''
+            self.endpoint2.pos[0] -= distX * 0.5 * diff
+            self.endpoint2.pos[1] -= distY * 0.5 * diff
+
+
 #################################################
 # Subclasses - Types of pieces 
 # Road, Wood, Steel, etc
@@ -92,14 +93,15 @@ class Vertex:
         self.radius = radius
 
     def resetPos(self):
-        self.pos[0] = self.originalPos[0]
-        self.pos[1] = self.originalPos[1]
+        self.pos = self.originalPos.copy()
+        self.oldpos = self.originalPos.copy()
 
     def update(self):
-        vel = (self.oldpos[0]-self.pos[0], self.oldpos[1]-self.pos[1])
+        vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
         self.oldpos = self.pos
         self.pos[0] += vel[0] + self.gravity[0]
         self.pos[1] += vel[1] + self.gravity[1]
+
 #################################################
 # Static Joint Class (Will implement soon)
 #################################################
