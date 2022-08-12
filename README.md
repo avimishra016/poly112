@@ -9,4 +9,6 @@ Be warned, if you go overbudget you will have to redo the level as well, so be s
 Have fun Playing Poly112!
 
 ## How to run the project
-To run this project, download all the files from the repository and store it in a folder. Then run the file called app.py. This will start up your game!
+To run this project, download all the files from the repository and store it in a folder. <br />
+Note: This code doesn't use any extra libraries or modules that need to be installed. <br />
+Finally, run the file called app.py. This will start up your game! 
