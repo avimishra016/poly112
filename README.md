@@ -7,3 +7,6 @@ After you have passed making one bridge, terrain at new heights will be made and
 If you fall off the bridge at any point, you would have to redo the level and not get new terrain
 Be warned, if you go overbudget you will have to redo the level as well, so be sure to make ur build less expensive
 Have fun Playing Poly112!
+
+## How to run the project
+To run this project, download all the files from the repository and store it in a folder. Then run the file called app.py. This will start up your game!
