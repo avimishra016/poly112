@@ -11,27 +11,43 @@ from joints import *
 from vehicle import *
 from terrain import *
 
+
+##########################################
+# Splash Screen Mode
+##########################################
+def splashScreenMode_redrawAll(app, canvas):
+    font = 'Rupee 36 bold'
+    drawBackgroud(app, canvas, False)
+    canvas.create_text(app.width/2, app.height/3, text='Welcome to Poly112', 
+                       font = font, fill = 'yellow')
+    canvas.create_text(app.width/2 ,app.height/3 + 100,
+                        fill = 'White', text='(Click anywhere on the screen to play)', 
+                        font = 'arial 26')
+    drawLevel(app,canvas)
+    drawStaticJoints(app,canvas)
+
+def splashScreenMode_mousePressed(app, event):
+    app.mode = 'gameMode'
 #################################################
 # Model
 #################################################
 
 def appStarted(app):
     # How much you can spend on the bridge
+    app.mode = 'splashScreenMode'
     app.budget = 30000
     #Manages which phase of the game you are in
-    app.phase = 'build'
     #How often timerFired runs
     app.timerDelay = 1
     # Creates and stores the Static Joints for the Level
-    app.staticJoints = { StaticJoint(115, 467), 
+    app.staticJoints = ( StaticJoint(115, 467), 
                          StaticJoint(app.width-115, 467)
-                       }
+                        )
     # Creates and stores the Terrain for the Level
-    app.terrain = { Terrain(0, 467, 115, app.height), 
+    app.terrain = ( Terrain(0, 467, 115, app.height), 
                     Terrain(app.width-115, 467, app.width, app.height)
-                  }
-    # Creates a vehicle for the game
-    app.vehicle = Vehicle(50, 200)
+                  )
+
     reset(app)
 
 # Model Veriables that Need to be reset whenever you clear the screen
@@ -50,17 +66,24 @@ def reset(app):
     app.vertices = set()
     # Stores the current vertex to be drawn
     app.currVertex = None
+    #Manages which phase of the game you are in
+    app.phase = 'build'
+    # Creates a vehicle for the game
+    app.vehicle = Vehicle(50, 200)
+
+    app.gameOver = False
+    app.gameOverCondition = ''
 
 
 ##################################################
-# Controller
+# Controller / Game Mode
 #################################################
-def timerFired(app):
+def gameMode_timerFired(app):
     #onl execute when in run phase
-    if app.phase == 'run':
+    if app.phase == 'run' and not app.gameOver:
         #update the position of the vertices
         for vertex in app.vertices:
-            vertex.update(None)
+            vertex.update()
         #update the pieces
         for value in app.pieces.values():
             for piece in value:
@@ -68,10 +91,21 @@ def timerFired(app):
         #update the vehicles position
         seg = app.vehicle.isTouching(app.terrain, app.pieces['Road'])
         app.vehicle.update(seg)
+        if app.vehicle.pos[1] > app.height:
+            app.gameOver = True
+            app.gameOverCondition = 'Vehicle fell out of map'
+        if (app.vehicle.pos[0] + app.vehicle.radius >= app.width
+            and app.vehicle.pos[1] < app.terrain[1].topLeft[1]):
+            app.gameOver = True
+            app.vehicle.velocity = [0,0]
+            if app.price <= app.budget:
+                app.gameOverCondition = 'You have crossed the bridge!!!'
+            else:
+                app.gameOverCondition = 'Overbudget'
 
 # Change Pieces
-def keyPressed(app, event):
-    if app.phase == 'build':
+def gameMode_keyPressed(app, event):
+    if app.phase == 'build' and not app.gameOver:
         if event.key in '123':
             app.inPreview = False
             app.currVertex = None
@@ -81,10 +115,16 @@ def keyPressed(app, event):
                 app.currPieceType = 'Wood'
             if event.key == '3':
                 app.currPieceType = 'Steel'
+    if app.gameOver:
+        if event.key == 'r':
+            app.gameOver = False
+            app.gameOverCondition = ''
+            reset(app)
 
 # Create a starting point for the piece
 # When clicked a second time place the piece on the screen
-def mousePressed(app, event):
+def gameMode_mousePressed(app, event):
+    if app.gameOver: return
     if (event.x >= app.width-90 and event.x <= app.width-30 and
         event.y <= 90 and event.y >= 30):
         if app.phase != 'run':
@@ -125,8 +165,8 @@ def mousePressed(app, event):
                 app.currPiece = None
 
 # display preview for placing
-def mouseMoved(app, event):
-    if app.phase == 'build':
+def gameMode_mouseMoved(app, event):
+    if app.phase == 'build' and not app.gameOver:
         if app.inPreview:
             app.currPiece.setEndpoint2(event.x, event.y, app.vertices, app.staticJoints)
 
@@ -137,10 +177,11 @@ def mouseMoved(app, event):
 #################################################
 
 # Draws Blue Background
-def drawBackgroud(app, canvas):
+def drawBackgroud(app, canvas, blackBox = True):
     canvas.create_rectangle(0,0,app.width,app.height, fill = 'lightskyblue3')
-    canvas.create_rectangle(0 , 0, app.width, app.height/36 + 100, 
-                            fill = 'black')
+    if blackBox:
+        canvas.create_rectangle(0 , 0, app.width, app.height/36 + 100, 
+                                fill = 'black')
 
 # Draws budget in red if over budget
 # Draws budget in green if under budget
@@ -214,7 +255,20 @@ def drawStaticJoints(app, canvas):
         canvas.create_oval(joint.pos[0]-joint.radius, joint.pos[1]-joint.radius,
                            joint.pos[0]+joint.radius, joint.pos[1]+joint.radius,
                            fill = 'red', outline = 'black')
-def redrawAll(app, canvas):
+
+def drawGameOver(app, canvas):
+        newText = 'press r to try again'
+        if app.gameOverCondition == 'You have crossed the bridge!!!':
+            newText = 'press r to make a new bridge'
+            color = 'forestgreen'
+        else:
+            color = 'red'
+        canvas.create_text(app.width/2, app.height/2, 
+                           text = app.gameOverCondition, fill = color,
+                           font = 'Shruti 36 bold')
+        canvas.create_text(app.width/2, app.height/2 + 50, text = newText,
+                            fill = color, font = 'Arial 22')
+def gameMode_redrawAll(app, canvas):
     drawBackgroud(app, canvas)
     drawBudget(app, canvas)
     drawDeleteAllPieces(app, canvas)
@@ -225,5 +279,6 @@ def redrawAll(app, canvas):
     drawPieces(app, canvas)
     drawVertices(app, canvas)
     drawStaticJoints(app, canvas)
-
+    if app.gameOver:
+        drawGameOver(app, canvas)
 runApp(width = 700, height = 700)

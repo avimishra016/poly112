@@ -41,5 +41,19 @@ class Vehicle(Vertex):
         self.oldpos = self.pos
         self.pos[0] += self.vel
     def update(self, collidingPiece):
-        super().update(collidingPiece)
+        if collidingPiece == None:
+            super().update()
+        else: 
+            self.velocity[0] = self.vel
+            self.oldpos = self.pos
+            self.pos[0] += self.vel
+            v1, v2 = 0, 0
+            if isinstance(collidingPiece, Terrain):
+                v1, v2 = collidingPiece.getTop()
+                self.pos[1] += getSlope(v1, v2) / self.vel -1
+            else:
+                v1 = collidingPiece.endpoint1.pos
+                v2 = collidingPiece.endpoint2.pos
+                slope = getSlope(v1,v2)
+                self.pos[1] += getSlope(v1, v2) / self.vel - 3
         self.velocity[1]*=1.01

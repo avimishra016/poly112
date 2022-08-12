@@ -37,26 +37,12 @@ class Vertex:
         self.oldpos = self.originalPos.copy()
         self.velocity = self.originalVelocity.copy()
 
-    def update(self, collidingSegment):
+    def update(self):
         self.oldpos = self.pos
-        if collidingSegment == None:
-            vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
-            self.oldpos = self.pos
-            self.pos[0] += vel[0] + self.velocity[0]
-            self.pos[1] += vel[1] + self.velocity[1]
-        else:
-            self.velocity[0] = self.vel
-            self.oldpos = self.pos
-            self.pos[0] += self.vel
-            v1, v2 = 0, 0
-            if isinstance(collidingSegment, Terrain):
-                v1, v2 = collidingSegment.getTop()
-                self.pos[1] += getSlope(v1, v2) / self.vel -1
-            else:
-                v1 = collidingSegment.endpoint1.pos
-                v2 = collidingSegment.endpoint2.pos
-                slope = getSlope(v1,v2)
-                self.pos[1] += getSlope(v1, v2) / self.vel - 3
+        vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])
+        self.oldpos = self.pos
+        self.pos[0] += vel[0] + self.velocity[0]
+        self.pos[1] += vel[1] + self.velocity[1]
 
 #################################################
 # Static Joints
