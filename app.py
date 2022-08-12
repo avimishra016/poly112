@@ -10,7 +10,7 @@ from extra import *
 from joints import *
 from vehicle import *
 from terrain import *
-
+import random
 
 ##########################################
 # Splash Screen Mode
@@ -39,16 +39,24 @@ def appStarted(app):
     #Manages which phase of the game you are in
     #How often timerFired runs
     app.timerDelay = 1
-    # Creates and stores the Static Joints for the Level
-    app.staticJoints = ( StaticJoint(115, 467), 
-                         StaticJoint(app.width-115, 467)
-                        )
-    # Creates and stores the Terrain for the Level
-    app.terrain = ( Terrain(0, 467, 115, app.height), 
-                    Terrain(app.width-115, 467, app.width, app.height)
-                  )
-
+    resetTerrain(app)
     reset(app)
+
+def resetTerrain(app):
+    # Creates and stores the Terrain for the Level
+    if app.mode == 'splashScreenMode':
+        height1 = 467
+        height2 = 467
+    else:
+        height1 = random.randint(230,550)
+        height2 = random.randint(230,550)
+    app.terrain = ( Terrain(0, height1, 115, app.height), 
+                    Terrain(app.width-115, height2, app.width, app.height)
+                  )
+    # Creates and stores the Static Joints for the Level
+    app.staticJoints = ( StaticJoint(115, height1), 
+                         StaticJoint(app.width-115, height2)
+                        )
 
 # Model Veriables that Need to be reset whenever you clear the screen
 def reset(app):
@@ -70,7 +78,6 @@ def reset(app):
     app.phase = 'build'
     # Creates a vehicle for the game
     app.vehicle = Vehicle(50, 200)
-
     app.gameOver = False
     app.gameOverCondition = ''
 
@@ -118,6 +125,8 @@ def gameMode_keyPressed(app, event):
     if app.gameOver:
         if event.key == 'r':
             app.gameOver = False
+            if app.gameOverCondition == 'You have crossed the bridge!!!':
+                resetTerrain(app)
             app.gameOverCondition = ''
             reset(app)
 
