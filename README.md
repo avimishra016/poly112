@@ -18,3 +18,11 @@ To change between your pieces, you can press <br />
 1: Road <br />
 2: Wood <br />
 3: Steel <br />
+
+## Gameplay controls
+Click on screen to create vertex, draws preview and you can place another piece
+Switch pieces with menu on bottom left, or 123
+red x deletes all pieces
+yellow x deletes pieces connected to current vertex
+press green play button to play
+pause button to reset
