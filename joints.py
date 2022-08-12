@@ -20,6 +20,7 @@ class Vertex:
         self.pos = [cx, cy]
         self.oldpos = [cx, cy]
 
+        #get x velocity if it exists
         self.vel = vel
 
         #Store the velocity (how many pixels the object moves)
@@ -32,11 +33,13 @@ class Vertex:
         #Create mass
         self.mass = mass
 
+    #resets the position
     def resetPos(self):
         self.pos = self.originalPos.copy()
         self.oldpos = self.originalPos.copy()
         self.velocity = self.originalVelocity.copy()
 
+    #updatse the position of the vertex, falls due to gravity
     def update(self):
         self.oldpos = self.pos
         vel = (self.pos[0]-self.oldpos[0], self.pos[1]-self.oldpos[1])

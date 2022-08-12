@@ -17,6 +17,7 @@ class Vehicle(Vertex):
         super().__init__(x,y, mass, 25)
         self.vel = vel
 
+    #checks if the vehicle is touching terrain or a road
     def isTouching(self, terrain, roads):
         bottom = self.pos[1]-self.radius
         xLoc = self.pos[0]
@@ -36,10 +37,8 @@ class Vehicle(Vertex):
                     self.velocity[1] = self.originalVelocity[1]
                     return road
         return None
-    
-    def moveRight(self):
-        self.oldpos = self.pos
-        self.pos[0] += self.vel
+
+    #moves the vehicle
     def update(self, collidingPiece):
         if collidingPiece == None:
             super().update()

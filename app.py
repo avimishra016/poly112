@@ -92,8 +92,11 @@ def appStarted(app):
     #Manages which phase of the game you are in
     #How often timerFired runs
     app.timerDelay = 1
+    #Updates terrain Variables
     resetTerrain(app)
+    #updates teh bridge variables
     resetBridge(app)
+    #resets basic game variables
     reset(app)
 
 def resetTerrain(app):
@@ -101,6 +104,7 @@ def resetTerrain(app):
     if app.mode == 'splashScreenMode':
         height1 = 467
         height2 = 467
+    # Generates random heights and assigns it to the terrain
     else:
         height1 = random.randint(230,550)
         height2 = random.randint(230,550)
@@ -155,6 +159,7 @@ def gameMode_timerFired(app):
         #update the vehicles position
         seg = app.vehicle.isTouching(app.terrain, app.pieces['Road'])
         app.vehicle.update(seg)
+        #Check for win conditions
         if app.vehicle.pos[1] > app.height:
             app.gameOver = True
             app.gameOverCondition = 'Vehicle fell out of map'
@@ -162,14 +167,16 @@ def gameMode_timerFired(app):
             and app.vehicle.pos[1] < app.terrain[1].topLeft[1]):
             app.gameOver = True
             app.vehicle.velocity = [0,0]
+            #Check if user has crossed the bridge without going overbudget
             if app.price <= app.budget:
                 app.gameOverCondition = 'You have crossed the bridge!!!'
             else:
                 app.gameOverCondition = 'Overbudget'
 
-# Change Pieces
+# Change Pieces and reset
 def gameMode_keyPressed(app, event):
     if app.phase == 'build' and not app.gameOver:
+        #Allows user to change pieces with numbers
         if event.key in '123':
             app.inPreview = False
             app.currVertex = None
@@ -180,6 +187,7 @@ def gameMode_keyPressed(app, event):
             if event.key == '3':
                 app.currPieceType = 'Steel'
     if app.gameOver:
+        #resets the game depending on the win condition
         if event.key == 'r':
             app.gameOver = False
             if app.gameOverCondition == 'You have crossed the bridge!!!':
@@ -189,6 +197,7 @@ def gameMode_keyPressed(app, event):
             resetVertices(app.vertices)
             reset(app)
 
+#Gets you the current piece in preview
 def getCurrPiece(app):
     if not isinstance(app.currVertex, StaticJoint):
         app.vertices.add(app.currVertex)
@@ -198,24 +207,31 @@ def getCurrPiece(app):
         app.currPiece = Wood(app.currVertex)
     elif app.currPieceType == 'Steel':
         app.currPiece = Steel(app.currVertex)
+
 # Create a starting point for the piece
 # When clicked a second time place the piece on the screen
 def gameMode_mousePressed(app, event):
+    #Check if game is over
     if app.gameOver: return
+    #check if user clicked on question mark, if so go to help mode
     if app.width-189 <= event.x <= app.width-126 and 22 <= event.y <= 103:
         app.mode = 'helpMode'
+    #check if user clicked on the pause play button
     if (event.x >= app.width-90 and event.x <= app.width-30 and
         event.y <= 90 and event.y >= 30):
+        #if they clicked play, change the game phase and reset certain variables
         if app.phase != 'run':
             app.phase = 'run'
             app.currVertex = None
             if app.inPreview:
                 app.inPreview = False
+        #if they clicked pause, reset the variables
         else:
             app.phase = 'build'
             resetVertices(app.vertices)
             app.vehicle.resetPos()
     if app.phase == 'build':
+        #check if the user is using the buttons in the bottom left to change pieces
         if event.x >= 0 and event.x <= 230 and event.y >= app.height-100:
             app.inPreview = False
             app.currVertex = None
@@ -225,10 +241,13 @@ def gameMode_mousePressed(app, event):
                 app.currPieceType = 'Wood'
             if 160 <= event.x <= 210:
                 app.currPieceType = 'Steel'
+        # Check if user clicked the red x, if so delete all pieces
         elif (event.x >= 30 and event.x<= 90 and
             event.y >=30 and event.y <= 90):
             reset(app)
             resetBridge(app)
+        # check if user clicked the yellow x,
+        # if so delete all pieces connected to the current vertex
         elif (event.x >= 120 and event.x<= 180 and
             event.y >=30 and event.y <= 90) and app.currVertex!=None:
             for mat, pieces in app.pieces.items():
@@ -244,6 +263,7 @@ def gameMode_mousePressed(app, event):
                 app.vertices.remove(app.currVertex)
             app.currVertex = None
             app.inPreview = False
+        # get the new vertex if clicked on screen
         elif event.y > app.height/36 + 100:
             app.inPreview = not app.inPreview
             if app.inPreview:
@@ -261,7 +281,7 @@ def gameMode_mousePressed(app, event):
                 #app.currPiece = None
                 app.inPreview = True
 
-# display preview for placing
+# changes the preview depending on the mouse location
 def gameMode_mouseMoved(app, event):
     if app.phase == 'build' and not app.gameOver:
         if app.inPreview:
@@ -273,7 +293,7 @@ def gameMode_mouseMoved(app, event):
 # View
 #################################################
 
-# Draws Blue Background
+# Draws Blue Background and black box
 def drawBackground(app, canvas, blackBox = True):
     canvas.create_rectangle(0,0,app.width,app.height, fill = 'lightskyblue3')
     if blackBox:
@@ -293,7 +313,7 @@ def drawBudget(app, canvas):
                         text = f'Budget: ${app.budget}', font = 'Shruti 21',
                         anchor = 'n', fill = 'yellow')
 
-# Draws all the placed pieces                   
+# Draws all the placed pieces on the board                 
 def drawPieces(app, canvas):
     for type in app.pieces:
         for piece in app.pieces[type]:
@@ -317,6 +337,7 @@ def drawDeleteAllPieces(app, canvas):
     canvas.create_line(30,30, 90, 90, fill = 'red', width = 10)
     canvas.create_line(90,30, 30, 90, fill = 'red', width = 10)
 
+# draws the button to delet all pieces connected to the current vertex
 def drawDeleteConnected(app, canvas):
     canvas.create_line(120,30, 180, 90, fill = 'yellow', width = 10)
     canvas.create_line(180,30, 120, 90, fill = 'yellow', width = 10)
@@ -335,22 +356,26 @@ def drawPausePlay(app, canvas):
         canvas.create_line(app.width-40, 30,
                            app.width-40, 90,
                            width = 10, fill = 'plum3')
+
+#draws the terrain for the level
 def drawLevel(app, canvas):
     for terrain in app.terrain:
         x1, y1 = terrain.topLeft 
         x2, y2 = terrain.bottomRight
         canvas.create_rectangle(x1, y1, x2, y2,
                                 fill = 'lightsalmon4', outline = 'lightsalmon4')
+#draws the vehicle or ball
 def drawVehicle(app, canvas):
     cx, cy = app.vehicle.pos
     r = app.vehicle.radius
     canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill = 'seagreen1')
-
+#draws all the vertices
 def drawVertices(app, canvas):
     for vertex in app.vertices:
         canvas.create_oval(vertex.pos[0]-vertex.radius, vertex.pos[1]-vertex.radius,
                            vertex.pos[0]+vertex.radius, vertex.pos[1]+vertex.radius,
                            fill = 'yellow', outline = 'black')
+# draws the current vertex selected
 def drawCurrVertex(app, canvas):
     if app.currVertex != None:
         x1 = app.currVertex.pos[0]-app.currVertex.radius-5
@@ -359,13 +384,13 @@ def drawCurrVertex(app, canvas):
         y2 = app.currVertex.pos[1]+app.currVertex.radius+5
         canvas.create_oval(x1, y1, x2, y2,
                            fill = 'gold1', outline = 'gold1')
-
+#draws the static joints
 def drawStaticJoints(app, canvas):
     for joint in app.staticJoints:
         canvas.create_oval(joint.pos[0]-joint.radius, joint.pos[1]-joint.radius,
                            joint.pos[0]+joint.radius, joint.pos[1]+joint.radius,
                            fill = 'red', outline = 'black')
-
+#draws the game over screen
 def drawGameOver(app, canvas):
         newText = 'press r to try again'
         if app.gameOverCondition == 'You have crossed the bridge!!!':
@@ -379,6 +404,7 @@ def drawGameOver(app, canvas):
         canvas.create_text(app.width/2, app.height/2 + 50, text = newText,
                             fill = color, font = 'Arial 22')
 
+#draws the piece select menu in the bottom left
 def drawPieceSelectPreview(app, canvas):
     if app.phase == 'build':
         canvas.create_rectangle(0, app.height-100, 230, app.height, fill = 'beige', outline = 'beige')
@@ -406,6 +432,8 @@ def drawPieceSelectPreview(app, canvas):
             x2 = piece.endpoint2.pos[0]
             y2 = piece.endpoint2.pos[1]
             canvas.create_line(x1,y1,x2,y2, fill = piece.color, width = 5)
+
+# draws the button to go to the help menu
 def drawHelpMenu(app, canvas):
     canvas.create_text(app.width-160, 60, text = '?', 
                        font = 'Shruti 62 bold', fill = 'yellow')

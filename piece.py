@@ -25,6 +25,7 @@ class piece:
         self.placed = False
         self.stiffness = stiffness
 
+    #sets the second endpoint for preview
     def setEndpoint2(self, x, y, vertices, joints):
         if not self.placed:
             self.length = ((x-self.endpoint1.pos[0])**2 +
@@ -40,9 +41,11 @@ class piece:
                 newVertex = Vertex(self.endpoint1.pos[0]-xLen, self.endpoint1.pos[1]-yLen)
                 self.endpoint2 = checkVertexExists(vertices, joints, newVertex)
 
+    #gets the cost of the piece
     def getCost(self):
         return self.ppm/50 * self.length
 
+    #places the piece and updates variables
     def placePiece(self):
         self.placed = True
         self.length = distanceBetVertices(self.endpoint1, self.endpoint2)
@@ -52,12 +55,16 @@ class piece:
             self.endpoint1 = temp
         return temp
     
+    #checks if a piece has been placed
     def isPlaced(self):
         return self.placed
 
+    #gets the x bounds of a piece
     def getXBounds(self):
         return self.endpoint1.pos[0], self.endpoint2.pos[0]
 
+    #updates the piece, so that it falls from gravity
+    #doesn't update the vertex position
     def update(self):
         # Inspiration for how the physics work and how it is implemented: 
         # https://gamedevelopment.tutsplus.com/tutorials/simulate-tearable-cloth-and-ragdolls-with-simple-verlet-integration--gamedev-519
