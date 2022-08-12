@@ -17,7 +17,7 @@ import random
 ##########################################
 def splashScreenMode_redrawAll(app, canvas):
     font = 'Rupee 36 bold'
-    drawBackgroud(app, canvas, False)
+    drawBackground(app, canvas, False)
     canvas.create_text(app.width/2, app.height/3, text='Welcome to Poly112', 
                        font = font, fill = 'yellow')
     canvas.create_text(app.width/2 ,app.height/3 + 100,
@@ -27,6 +27,59 @@ def splashScreenMode_redrawAll(app, canvas):
     drawStaticJoints(app,canvas)
 
 def splashScreenMode_mousePressed(app, event):
+    app.mode = 'gameMode'
+##########################################
+# Help Mode
+##########################################
+
+def helpMode_redrawAll(app, canvas):
+    font = 'Rupee 36 bold'
+    text = 'so be sure to make ur build less expensive Have fun Playing Poly112!'
+    drawBackground(app, canvas, False)
+    canvas.create_text(20, 20, text='Welcome to Poly112', 
+                       font = font, fill = 'yellow', anchor = 'nw')
+    canvas.create_text(20, 90, text = 'In this game (Poly112) you will be designing your own bridge!',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 120, text = 'To win the game you must design your bridge in such a way that',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 150, text = 'the ball goes across the bridge without falling.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 180, text = 'Explore your options!', font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 210, text = 'Use different support pieces, try making jumps, anything that',
+                       font = 'arial 17', anchor = 'nw') 
+    canvas.create_text(20, 240, text = 'you believe would make a cool looking bridge.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 270, text = 'After you have passed making one bridge, terrain at new heights',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 300, text = 'will be made and you can make another bridge.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 330, text = 'If you fall off the bridge at any point, you would have to redo',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 360, text = 'the level and not get new terrain.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 390, text = 'Be warned, if you go overbudget you will have to redo the level as',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 420, text = 'well, so be sure to make ur build less expensive.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 450, text = 'Have fun playing Poly112!!!',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 490, text = 'You can switch your piece by using the keys 123 or by',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 520, text = 'clicking on the pieces in the bottom left.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 550, text = 'Clicking on the red X will clear all your pieces.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 580, text = 'However, clicking on the yellow x will clear all pieces',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 610, text = 'connected to the selected vertex.',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(20, 640, text = 'Test your bridge with the green play button. Have Fun!',
+                       font = 'arial 17', anchor = 'nw')
+    canvas.create_text(app.width/2 ,app.height,
+                        fill = 'White', text='(Click anywhere on the screen to resume)', 
+                        font = 'arial 20', anchor = 's')
+
+def helpMode_mousePressed(app, event):
     app.mode = 'gameMode'
 #################################################
 # Model
@@ -133,6 +186,7 @@ def gameMode_keyPressed(app, event):
                 resetTerrain(app)
                 resetBridge(app)
             app.gameOverCondition = ''
+            resetVertices(app.vertices)
             reset(app)
 
 def getCurrPiece(app):
@@ -148,6 +202,8 @@ def getCurrPiece(app):
 # When clicked a second time place the piece on the screen
 def gameMode_mousePressed(app, event):
     if app.gameOver: return
+    if app.width-189 <= event.x <= app.width-126 and 22 <= event.y <= 103:
+        app.mode = 'helpMode'
     if (event.x >= app.width-90 and event.x <= app.width-30 and
         event.y <= 90 and event.y >= 30):
         if app.phase != 'run':
@@ -155,7 +211,6 @@ def gameMode_mousePressed(app, event):
             app.currVertex = None
             if app.inPreview:
                 app.inPreview = False
-                #app.vertices.remove(app.currVertex)
         else:
             app.phase = 'build'
             resetVertices(app.vertices)
@@ -181,8 +236,10 @@ def gameMode_mousePressed(app, event):
                 for piece in copyPieces:
                     if piece.endpoint1 == app.currVertex:
                         app.pieces[mat].remove(piece)
+                        app.price -= piece.getCost()
                     if piece.endpoint2 == app.currVertex:
                         app.pieces[mat].remove(piece)
+                        app.price -= piece.getCost()
             if not isinstance(app.currVertex, StaticJoint):
                 app.vertices.remove(app.currVertex)
             app.currVertex = None
@@ -217,7 +274,7 @@ def gameMode_mouseMoved(app, event):
 #################################################
 
 # Draws Blue Background
-def drawBackgroud(app, canvas, blackBox = True):
+def drawBackground(app, canvas, blackBox = True):
     canvas.create_rectangle(0,0,app.width,app.height, fill = 'lightskyblue3')
     if blackBox:
         canvas.create_rectangle(0 , 0, app.width, app.height/36 + 100, 
@@ -324,37 +381,38 @@ def drawGameOver(app, canvas):
 
 def drawPieceSelectPreview(app, canvas):
     if app.phase == 'build':
-        canvas.create_rectangle(0, app.height-100, 230, app.height, fill = 'black', outline = None)
+        canvas.create_rectangle(0, app.height-100, 230, app.height, fill = 'beige', outline = 'beige')
         if app.currPieceType == 'Road':
             x1 = app.previewPieces[0].endpoint1.pos[0]
             y1 = app.previewPieces[0].endpoint1.pos[1]
             x2 = app.previewPieces[0].endpoint2.pos[0]
             y2 = app.previewPieces[0].endpoint2.pos[1]
-            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
-            pass
+            canvas.create_oval(x1,y1,x2,y2, fill = 'grey79', outline = 'grey79')
         elif app.currPieceType == 'Wood':
             x1 = app.previewPieces[1].endpoint1.pos[0]
             y1 = app.previewPieces[1].endpoint1.pos[1]
             x2 = app.previewPieces[1].endpoint2.pos[0]
             y2 = app.previewPieces[1].endpoint2.pos[1]
-            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
-            pass
+            canvas.create_oval(x1,y1,x2,y2, fill = 'grey79', outline = 'grey79')
         elif app.currPieceType == 'Steel':
             x1 = app.previewPieces[2].endpoint1.pos[0]
             y1 = app.previewPieces[2].endpoint1.pos[1]
             x2 = app.previewPieces[2].endpoint2.pos[0]
             y2 = app.previewPieces[2].endpoint2.pos[1]
-            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
-            pass
+            canvas.create_oval(x1,y1,x2,y2, fill = 'grey79', outline = 'grey79')
         for piece in app.previewPieces:
             x1 = piece.endpoint1.pos[0]
             y1 = piece.endpoint1.pos[1]
             x2 = piece.endpoint2.pos[0]
             y2 = piece.endpoint2.pos[1]
             canvas.create_line(x1,y1,x2,y2, fill = piece.color, width = 5)
+def drawHelpMenu(app, canvas):
+    canvas.create_text(app.width-160, 60, text = '?', 
+                       font = 'Shruti 62 bold', fill = 'yellow')
 
 def gameMode_redrawAll(app, canvas):
-    drawBackgroud(app, canvas)
+    drawBackground(app, canvas)
+    drawHelpMenu(app, canvas)
     drawBudget(app, canvas)
     drawDeleteAllPieces(app, canvas)
     drawDeleteConnected(app, canvas)
