@@ -40,6 +40,7 @@ def appStarted(app):
     #How often timerFired runs
     app.timerDelay = 1
     resetTerrain(app)
+    resetBridge(app)
     reset(app)
 
 def resetTerrain(app):
@@ -57,21 +58,19 @@ def resetTerrain(app):
     app.staticJoints = ( StaticJoint(115, height1), 
                          StaticJoint(app.width-115, height2)
                         )
-
+    #0, app.height-100, 250, app.height
+    app.previewPieces = (Road(Vertex(20, app.height-70), Vertex(70, app.height-20)),
+                         Wood(Vertex(90, app.height-70), Vertex(140, app.height-20)),
+                         Steel(Vertex(160, app.height-70), Vertex(210, app.height-20))
+                        )
 # Model Veriables that Need to be reset whenever you clear the screen
 def reset(app):
-    #How much money you have used so far
-    app.price = 0
-    #Stores the pieces
-    app.pieces = {'Road': set(), 'Wood': set(), 'Steel': set()}
     # Makes the current piece a road
     app.currPieceType = 'Road'
     #No current piece has been created
     app.currPiece = None    
     #Variable that tracks if you need to draw a preview or not
     app.inPreview = False
-    #Stores all the vertices
-    app.vertices = set()
     # Stores the current vertex to be drawn
     app.currVertex = None
     #Manages which phase of the game you are in
@@ -80,8 +79,13 @@ def reset(app):
     app.vehicle = Vehicle(50, 200)
     app.gameOver = False
     app.gameOverCondition = ''
-
-
+def resetBridge(app):
+    #How much money you have used so far
+    app.price = 0
+    #Stores the pieces
+    app.pieces = {'Road': set(), 'Wood': set(), 'Steel': set()}
+    #Stores all the vertices
+    app.vertices = set()
 ##################################################
 # Controller / Game Mode
 #################################################
@@ -127,9 +131,19 @@ def gameMode_keyPressed(app, event):
             app.gameOver = False
             if app.gameOverCondition == 'You have crossed the bridge!!!':
                 resetTerrain(app)
+                resetBridge(app)
             app.gameOverCondition = ''
             reset(app)
 
+def getCurrPiece(app):
+    if not isinstance(app.currVertex, StaticJoint):
+        app.vertices.add(app.currVertex)
+    if app.currPieceType == 'Road':
+        app.currPiece = Road(app.currVertex)
+    elif app.currPieceType == 'Wood':
+        app.currPiece = Wood(app.currVertex)
+    elif app.currPieceType == 'Steel':
+        app.currPiece = Steel(app.currVertex)
 # Create a starting point for the piece
 # When clicked a second time place the piece on the screen
 def gameMode_mousePressed(app, event):
@@ -138,6 +152,7 @@ def gameMode_mousePressed(app, event):
         event.y <= 90 and event.y >= 30):
         if app.phase != 'run':
             app.phase = 'run'
+            app.currVertex = None
             if app.inPreview:
                 app.inPreview = False
                 #app.vertices.remove(app.currVertex)
@@ -145,25 +160,39 @@ def gameMode_mousePressed(app, event):
             app.phase = 'build'
             resetVertices(app.vertices)
             app.vehicle.resetPos()
-    
     if app.phase == 'build':
-        if (event.x >= 30 and event.x<= 90 and
+        if event.x >= 0 and event.x <= 230 and event.y >= app.height-100:
+            app.inPreview = False
+            app.currVertex = None
+            if 20 <= event.x <= 70:
+                app.currPieceType = 'Road'
+            if 90 <= event.x <= 140:
+                app.currPieceType = 'Wood'
+            if 160 <= event.x <= 210:
+                app.currPieceType = 'Steel'
+        elif (event.x >= 30 and event.x<= 90 and
             event.y >=30 and event.y <= 90):
             reset(app)
-
-        if event.y > app.height/36 + 100:
+            resetBridge(app)
+        elif (event.x >= 120 and event.x<= 180 and
+            event.y >=30 and event.y <= 90) and app.currVertex!=None:
+            for mat, pieces in app.pieces.items():
+                copyPieces = pieces.copy()
+                for piece in copyPieces:
+                    if piece.endpoint1 == app.currVertex:
+                        app.pieces[mat].remove(piece)
+                    if piece.endpoint2 == app.currVertex:
+                        app.pieces[mat].remove(piece)
+            if not isinstance(app.currVertex, StaticJoint):
+                app.vertices.remove(app.currVertex)
+            app.currVertex = None
+            app.inPreview = False
+        elif event.y > app.height/36 + 100:
             app.inPreview = not app.inPreview
             if app.inPreview:
                 app.currVertex = checkVertexExists(app.vertices, app.staticJoints, 
                                                     Vertex(event.x,event.y))
-                if not isinstance(app.currVertex, StaticJoint):
-                    app.vertices.add(app.currVertex)
-                if app.currPieceType == 'Road':
-                    app.currPiece = Road(app.currVertex)
-                elif app.currPieceType == 'Wood':
-                    app.currPiece = Wood(app.currVertex)
-                elif app.currPieceType == 'Steel':
-                    app.currPiece = Steel(app.currVertex)
+                getCurrPiece(app)
             else:
                 app.currVertex = checkVertexExists(app.vertices, app.staticJoints, 
                                                     app.currPiece.placePiece())
@@ -171,7 +200,9 @@ def gameMode_mousePressed(app, event):
                     app.vertices.add(app.currVertex)
                 app.price += app.currPiece.getCost()
                 app.pieces[app.currPieceType].add(app.currPiece)
-                app.currPiece = None
+                getCurrPiece(app)
+                #app.currPiece = None
+                app.inPreview = True
 
 # display preview for placing
 def gameMode_mouseMoved(app, event):
@@ -217,7 +248,7 @@ def drawPieces(app, canvas):
 
 # Draws the preview for the current piece
 def drawPreview(app, canvas):
-    if app.inPreview and app.currPiece.endpoint2 != None:
+    if app.inPreview and app.currPiece != None and app.currPiece.endpoint2 != None:
         x1 = app.currPiece.endpoint1.pos[0]
         y1 = app.currPiece.endpoint1.pos[1]
         x2 = app.currPiece.endpoint2.pos[0]
@@ -228,6 +259,10 @@ def drawPreview(app, canvas):
 def drawDeleteAllPieces(app, canvas):
     canvas.create_line(30,30, 90, 90, fill = 'red', width = 10)
     canvas.create_line(90,30, 30, 90, fill = 'red', width = 10)
+
+def drawDeleteConnected(app, canvas):
+    canvas.create_line(120,30, 180, 90, fill = 'yellow', width = 10)
+    canvas.create_line(180,30, 120, 90, fill = 'yellow', width = 10)
 
 # draws button to pause and play
 def drawPausePlay(app, canvas):
@@ -259,6 +294,15 @@ def drawVertices(app, canvas):
         canvas.create_oval(vertex.pos[0]-vertex.radius, vertex.pos[1]-vertex.radius,
                            vertex.pos[0]+vertex.radius, vertex.pos[1]+vertex.radius,
                            fill = 'yellow', outline = 'black')
+def drawCurrVertex(app, canvas):
+    if app.currVertex != None:
+        x1 = app.currVertex.pos[0]-app.currVertex.radius-5
+        y1 = app.currVertex.pos[1]-app.currVertex.radius-5
+        x2 = app.currVertex.pos[0]+app.currVertex.radius+5
+        y2 = app.currVertex.pos[1]+app.currVertex.radius+5
+        canvas.create_oval(x1, y1, x2, y2,
+                           fill = 'gold1', outline = 'gold1')
+
 def drawStaticJoints(app, canvas):
     for joint in app.staticJoints:
         canvas.create_oval(joint.pos[0]-joint.radius, joint.pos[1]-joint.radius,
@@ -277,17 +321,52 @@ def drawGameOver(app, canvas):
                            font = 'Shruti 36 bold')
         canvas.create_text(app.width/2, app.height/2 + 50, text = newText,
                             fill = color, font = 'Arial 22')
+
+def drawPieceSelectPreview(app, canvas):
+    if app.phase == 'build':
+        canvas.create_rectangle(0, app.height-100, 230, app.height, fill = 'black', outline = None)
+        if app.currPieceType == 'Road':
+            x1 = app.previewPieces[0].endpoint1.pos[0]
+            y1 = app.previewPieces[0].endpoint1.pos[1]
+            x2 = app.previewPieces[0].endpoint2.pos[0]
+            y2 = app.previewPieces[0].endpoint2.pos[1]
+            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
+            pass
+        elif app.currPieceType == 'Wood':
+            x1 = app.previewPieces[1].endpoint1.pos[0]
+            y1 = app.previewPieces[1].endpoint1.pos[1]
+            x2 = app.previewPieces[1].endpoint2.pos[0]
+            y2 = app.previewPieces[1].endpoint2.pos[1]
+            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
+            pass
+        elif app.currPieceType == 'Steel':
+            x1 = app.previewPieces[2].endpoint1.pos[0]
+            y1 = app.previewPieces[2].endpoint1.pos[1]
+            x2 = app.previewPieces[2].endpoint2.pos[0]
+            y2 = app.previewPieces[2].endpoint2.pos[1]
+            canvas.create_oval(x1,y1,x2,y2, fill = 'white')
+            pass
+        for piece in app.previewPieces:
+            x1 = piece.endpoint1.pos[0]
+            y1 = piece.endpoint1.pos[1]
+            x2 = piece.endpoint2.pos[0]
+            y2 = piece.endpoint2.pos[1]
+            canvas.create_line(x1,y1,x2,y2, fill = piece.color, width = 5)
+
 def gameMode_redrawAll(app, canvas):
     drawBackgroud(app, canvas)
     drawBudget(app, canvas)
     drawDeleteAllPieces(app, canvas)
+    drawDeleteConnected(app, canvas)
     drawPausePlay(app, canvas)
     drawLevel(app, canvas)
     drawPreview(app, canvas)
     drawVehicle(app, canvas)
     drawPieces(app, canvas)
+    drawCurrVertex(app,canvas)
     drawVertices(app, canvas)
     drawStaticJoints(app, canvas)
+    drawPieceSelectPreview(app, canvas)
     if app.gameOver:
         drawGameOver(app, canvas)
 runApp(width = 700, height = 700)

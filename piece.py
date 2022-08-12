@@ -13,13 +13,15 @@ import math
 # Piece SuperClass
 #################################################
 class piece:
-    def __init__(self, maxLen, color, ppm, stiffness, v1):
+    def __init__(self, maxLen, color, ppm, stiffness, v1, v2 = None):
         self.length = 0
         self.maxLen = maxLen
         self.color = color
         self.ppm = ppm
         self.endpoint1 = v1
         self.endpoint2 = v1
+        if v2 != None:
+            self.endpoint2 = v2
         self.placed = False
         self.stiffness = stiffness
 
@@ -83,13 +85,13 @@ class piece:
 # $200 -> 50 pixels
 # $4 -> pixel
 class Road(piece):
-    def __init__(self, v1):
-        super().__init__(100, 'brown4', 200, 1, v1)
+    def __init__(self, v1, v2 = None):
+        super().__init__(100, 'brown4', 200, 1, v1, v2)
 
 class Wood(piece):
-    def __init__(self, v1):
-        super().__init__(100, 'goldenrod2', 180, 1.5, v1)
+    def __init__(self, v1, v2 = None):
+        super().__init__(100, 'goldenrod2', 180, 1.5, v1, v2)
 
 class Steel(piece):
-    def __init__(self, v1):
-        super().__init__(200, 'grey42', 450, 2, v1)
+    def __init__(self, v1, v2 = None):
+        super().__init__(200, 'grey42', 450, 2, v1, v2)
