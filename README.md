@@ -14,7 +14,7 @@ Note: This code doesn't use any extra libraries or modules that need to be insta
 Finally, run the file called app.py. This will start up your game! 
 
 ## Commands
-To change between your pieces, you can press 
+To change between your pieces, you can press <br />
 1: Road <br />
 2: Wood <br />
 3: Steel <br />
